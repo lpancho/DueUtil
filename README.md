@@ -1,19 +1,26 @@
-# This project is outdated! There's a new DueUtil at https://dueutil.tech/
-
 # DueUtil
-### The questing and fun discord bot!
+
+#### The purpose of this fork is to run the DueUtil in your own discord server using your local to run the application and to store data
+#### We will not cover the running of DueUtil website in this repository
 
 #### Running the bot
-(more detailed setup / install script later -- maybe)
 
 Requirements:
-* Python 3.5 +
+* Python 3.6.8 (https://www.python.org/downloads/release/python-383/)
 * The packages in requirements.txt (`pip install -r requirements.txt`)
 * MongoDB  (https://docs.mongodb.com/manual/installation/)
-* PHP & Apache (if you really want to run the site too)
+  * Get your connection string by: 
+    * Typing mongosh in command prompt
+    * ![image](https://user-images.githubusercontent.com/43244009/151656425-869b72d4-9e48-461d-b648-6766cf0a0414.png)
+    * Connecting to Mongo Compass then without any connection string then disconnect (Connect > Disconnect) it will fill it up your previous connection
+    * ![image](https://user-images.githubusercontent.com/43244009/151656465-32c19bf6-e465-427f-a400-a7de6fcb6454.png)
 
 ##### Setup the DB
 1. Create an account that can create & update databases (admin will do)
+```mongodb
+use admin
+db.createUser({user: "admin", pwd: "hunter1", roles:[{role: "userAdmin" , db:"dueutil"}]})
+```
 2. Put the account details in `dbconfig.json`
 
 ```json
