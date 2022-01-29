@@ -80,7 +80,7 @@ The logging channels are currenly needed (the bot may not work properly without 
 
 ##### Run DueUtil!
 
-DueUtil can be ran with: `python3 run.py`
+DueUtil can be ran with: `python3 run.py` **NOTE: Add first the bot into the server before running**
 
 ### Can't run the bot?!
 I expect it will be fiddly to get this bot running, but please don't ask me to set it up for you I'm not going to help.
