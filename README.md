@@ -58,7 +58,7 @@ The logging channels are currenly needed (the bot may not work properly without 
 
 ##### Restoring the database
 
-1. Download the database dump from the last release
+1. Download the database dump from the last release (https://github.com/MacDue/DueUtil/releases/download/2.0.6.2-final-database/dueutil_database_final.zip)
 2. Extract that zip into folder called `database`
     ```
     database
