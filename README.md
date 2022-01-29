@@ -1,19 +1,26 @@
-# This project is outdated! There's a new DueUtil at https://dueutil.tech/
-
 # DueUtil
-### The questing and fun discord bot!
+
+#### The purpose of this fork is to run the DueUtil in your own discord server using your local to run the application and to store data
+#### We will not cover the running of DueUtil website in this repository
 
 #### Running the bot
-(more detailed setup / install script later -- maybe)
 
 Requirements:
-* Python 3.5 +
+* Python 3.6.8 (https://www.python.org/downloads/release/python-383/)
 * The packages in requirements.txt (`pip install -r requirements.txt`)
 * MongoDB  (https://docs.mongodb.com/manual/installation/)
-* PHP & Apache (if you really want to run the site too)
+  * Get your connection string by: 
+    * Typing mongosh in command prompt
+    * ![image](https://user-images.githubusercontent.com/43244009/151656425-869b72d4-9e48-461d-b648-6766cf0a0414.png)
+    * Connecting to Mongo Compass then without any connection string then disconnect (Connect > Disconnect) it will fill it up your previous connection
+    * ![image](https://user-images.githubusercontent.com/43244009/151656465-32c19bf6-e465-427f-a400-a7de6fcb6454.png)
 
 ##### Setup the DB
 1. Create an account that can create & update databases (admin will do)
+```mongodb
+use admin
+db.createUser({user: "admin", pwd: "hunter1", roles:[{role: "userAdmin" , db:"dueutil"}]})
+```
 2. Put the account details in `dbconfig.json`
 
 ```json
@@ -51,7 +58,7 @@ The logging channels are currenly needed (the bot may not work properly without 
 
 ##### Restoring the database
 
-1. Download the database dump from the last release
+1. Download the database dump from the last release (https://github.com/MacDue/DueUtil/releases/download/2.0.6.2-final-database/dueutil_database_final.zip)
 2. Extract that zip into folder called `database`
     ```
     database
@@ -65,9 +72,15 @@ The logging channels are currenly needed (the bot may not work properly without 
  3. Use mongorestore
     ``mongorestore  --username your_use --password "your_pass" --authenticationDatabase admin ./database``
 
+##### Setting up Discord Bot
+1. Register and login to discord developers site (https://discord.com/developers/applications)
+2. Follow the steps in creating discord bot here (https://www.writebots.com/discord-bot-token/)
+3. DISCORD BOT TOKEN can be found in Bot section of the discord app (under bot's username)
+4. OWNER DISCORD ID is the one who created the discord bot - enable developer in Settings > Advance >  Developer Mode
+
 ##### Run DueUtil!
 
-DueUtil can be ran with: `python3 run.py`
+DueUtil can be ran with: `python3 run.py` **NOTE: Add first the bot into the server before running**
 
 ### Can't run the bot?!
 I expect it will be fiddly to get this bot running, but please don't ask me to set it up for you I'm not going to help.
