@@ -72,6 +72,12 @@ The logging channels are currenly needed (the bot may not work properly without 
  3. Use mongorestore
     ``mongorestore  --username your_use --password "your_pass" --authenticationDatabase admin ./database``
 
+##### Setting up Discord Bot
+1. Register and login to discord developers site (https://discord.com/developers/applications)
+2. Follow the steps in creating discord bot here (https://www.writebots.com/discord-bot-token/)
+3. DISCORD BOT TOKEN can be found in Bot section of the discord app (under bot's username)
+4. OWNER DISCORD ID is the one who created the discord bot - enable developer in Settings > Advance >  Developer Mode
+
 ##### Run DueUtil!
 
 DueUtil can be ran with: `python3 run.py`
