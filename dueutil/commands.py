@@ -51,7 +51,7 @@ def command(**command_rules):
         async def wrapped_command(ctx, prefix, _, args, **details):
             name = command_func.__name__
             # Player has admin perms
-            is_admin = permissions.has_permission(ctx.author, Permission.SERVER_ADMIN)
+            is_admin = permissions.has_permission(ctx.channel.server.me, Permission.SERVER_ADMIN)
             if not is_admin and dueserverconfig.mute_level(ctx.channel) == 1:
                 return True
             # Blacklist/whitelist
@@ -65,7 +65,7 @@ def command(**command_rules):
                     await util.say(ctx.channel, ":anger: That command is blacklisted in this channel!")
                 return True
             # Do they have the perms for the command
-            if check(ctx.author, wrapped_command):
+            if check(ctx.channel.server.me, wrapped_command):
                 # Check args
                 args_pattern = command_rules.get('args_pattern', "")
                 # Send a copy of args to avoid possible issues.

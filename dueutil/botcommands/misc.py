@@ -31,7 +31,7 @@ async def permissions(ctx, **_):
     permissions_report = ""
     for permission in dueutil.permissions.permissions:
         permissions_report += ("``" + permission.value[1] + "`` → "
-                               + (":white_check_mark:" if dueutil.permissions.has_permission(ctx.author,
+                               + (":white_check_mark:" if dueutil.permissions.has_permission(ctx.channel.server.me,
                                                                                              permission)
                                   else ":no_entry:") + "\n")
     await util.say(ctx.channel, permissions_report)
