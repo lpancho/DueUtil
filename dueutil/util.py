@@ -147,7 +147,7 @@ def get_shard_index(server_id):
 
 
 def pretty_time():
-    return time.strftime('%l:%M%p %Z on %b %d, %Y')
+    return time.strftime('%I:%M%p %Z on %b %d, %Y')
 
 
 def get_server_count():
