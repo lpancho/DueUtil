@@ -101,8 +101,8 @@ async def acceptquest(ctx, quest_index, **details):
     quest_index -= 1
     if quest_index >= len(player.quests):
         raise util.DueUtilException(ctx.channel, "Quest not found!")
-    if player.money - player.quests[quest_index].money // 2 < 0:
-        raise util.DueUtilException(ctx.channel, "You can't afford the risk!")
+    # if player.money - player.quests[quest_index].money // 2 < 0:
+    #     raise util.DueUtilException(ctx.channel, "You can't afford the risk!")
     if player.quests_completed_today >= quests.MAX_DAILY_QUESTS:
         raise util.DueUtilException(ctx.channel,
                                     "You can't do more than " + str(quests.MAX_DAILY_QUESTS) + " quests a day!")
