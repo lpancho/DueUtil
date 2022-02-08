@@ -11,7 +11,6 @@ import emoji  # The emoji list in this is outdated/not complete.
 from raven import Client
 
 import generalconfig as gconf
-from .trello import TrelloClient
 
 """
 A random jumble of classes & functions that are some how
@@ -27,9 +26,6 @@ logger = logging.getLogger('dueutil')
 sentry_client = Client(gconf.other_configs["sentryAuth"],
                        ignore_exceptions=["KeyboardInterrupt"],
                        release=gconf.VERSION)
-
-trello_client = TrelloClient(api_key=gconf.trello_api_key,
-                             api_token=gconf.trello_api_token)
 
 
 class DueLog:

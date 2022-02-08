@@ -14,10 +14,6 @@ DUE_OPTOUT_ROLE = "Due Optout"
 # Colour defaults to colour
 DUE_ROLES = ({"name": DUE_COMMANDER_ROLE}, {"name": DUE_OPTOUT_ROLE, "colour": 0})
 
-trello_api_key = "[REDACTED]"
-trello_api_token = "[REDACTED]"
-trello_board = "https://trello.com/b/1ykaASKj/dueutil"
-
 # Silly things:
 DEAD_BOT_ID = "173391791884599297"
 DUE_START_DATE = datetime.utcfromtimestamp(1498820132)
