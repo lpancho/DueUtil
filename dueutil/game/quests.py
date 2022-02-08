@@ -21,9 +21,9 @@ quest_map = DueMap()
 
 MIN_QUEST_IV = 0
 QUEST_DAY = 86400
-QUEST_COOLDOWN = 1
+QUEST_COOLDOWN = 360
 MAX_DAILY_QUESTS = 50
-MAX_ACTIVE_QUESTS = 15
+MAX_ACTIVE_QUESTS = 10
 
 
 class Quest(DueUtilObject, SlotPickleMixin):
