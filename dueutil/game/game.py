@@ -18,9 +18,6 @@ from . import gamerules
 # from threading import Lock
 
 SPAM_TOLERANCE = 50
-# For awards in the first week. Not permanent.
-old_players = open('oldplayers.txt').read()  # For comeback award
-testers = open('testers.txt').read()  # For testers award
 # spelling_lock = Lock()
 
 
@@ -77,12 +74,6 @@ async def player_message(message, player, spam_level):
                 return
 
             # Special Awards
-            # Comeback award
-            if player.id in old_players:
-                await awards.give_award(message.channel, player, "CameBack", "Return to DueUtil")
-            # Tester award
-            if player.id in testers:
-                await awards.give_award(message.channel, player, "Tester", ":bangbang: **Something went wrong...**")
             # Donor award
             if player.donor:
                 await awards.give_award(message.channel, player, "Donor",
