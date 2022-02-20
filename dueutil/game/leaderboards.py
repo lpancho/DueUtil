@@ -25,6 +25,9 @@ def calculate_player_rankings(rank_name, sort_function, reverse=True):
 def calculate_level_leaderboard():
     calculate_player_rankings("levels", lambda player: player.total_exp)
 
+def calculate_money_leaderboard():
+    calculate_player_rankings("money", lambda player: player.money)
+
 
 def get_leaderboard(rank_name):
     if rank_name in leaderboards:
@@ -67,3 +70,4 @@ def calculate_updates():
 
 events.register_message_listener(update_leaderboards)
 calculate_level_leaderboard()
+calculate_money_leaderboard()
