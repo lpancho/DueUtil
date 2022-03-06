@@ -27,17 +27,17 @@ def command(**command_rules):
 
     def is_spam_command(ctx, called, *args):
         if called.permission < Permission.SERVER_ADMIN:
-            return (sum(isinstance(arg, players.Player) for arg in args)
+            return (sum(isinstance(players.find_player(arg), players.Player) for arg in args)
                     < len(ctx.raw_mentions) or ctx.mention_everyone
                     or '@here' in ctx.content or '@everyone' in ctx.content)
         return False
 
     def get_command_details(ctx, **details):
-        details["timestamp"] = ctx.timestamp
+        details["timestamp"] = ctx.created_at
         details["author"] = players.find_player(ctx.author.id)
-        details["server_id"] = ctx.server.id
-        details["server_name"] = ctx.server.name
-        details["server_name_clean"] = util.ultra_escape_string(ctx.server.name)
+        details["server_id"] = ctx.guild.id
+        details["server_name"] = ctx.guild.name
+        details["server_name_clean"] = util.ultra_escape_string(ctx.guild.name)
         details["author_name"] = ctx.author.name
         details["author_name_clean"] = util.ultra_escape_string(ctx.author.name)
         details["channel"] = ctx.channel
@@ -51,7 +51,7 @@ def command(**command_rules):
         async def wrapped_command(ctx, prefix, _, args, **details):
             name = command_func.__name__
             # Player has admin perms
-            is_admin = permissions.has_permission(ctx.channel.server.me, Permission.SERVER_ADMIN)
+            is_admin = permissions.has_permission(ctx.author, Permission.SERVER_ADMIN)
             if not is_admin and dueserverconfig.mute_level(ctx.channel) == 1:
                 return True
             # Blacklist/whitelist
@@ -65,7 +65,7 @@ def command(**command_rules):
                     await util.say(ctx.channel, ":anger: That command is blacklisted in this channel!")
                 return True
             # Do they have the perms for the command
-            if check(ctx.channel.server.me, wrapped_command):
+            if check(ctx.author, wrapped_command):
                 # Check args
                 args_pattern = command_rules.get('args_pattern', "")
                 # Send a copy of args to avoid possible issues.
@@ -74,7 +74,7 @@ def command(**command_rules):
                     # React ?
                     if not has_my_variant(name) or len(ctx.raw_mentions) > 0:
                         # Could not be a mistype for a personal my command
-                        await util.get_client(ctx.server.id).add_reaction(ctx, emojis.QUESTION_REACT)
+                        await ctx.add_reaction(emojis.QUESTION_REACT)
                     else:
                         # May have meant to call a personal command
                         personal_command_name = "my" + name
@@ -88,7 +88,7 @@ def command(**command_rules):
                     raise util.DueUtilException(ctx.channel, "Please don't include spam mentions in commands.")
             else:
                 # React X
-                await util.get_client(ctx.server.id).add_reaction(ctx, emojis.CROSS_REACT)
+                await ctx.add_reaction(emojis.CROSS_REACT)
             return True
 
         wrapped_command.is_hidden = command_rules.get('hidden', False)
@@ -132,7 +132,7 @@ def imagecommand():
         @ratelimit(slow_command=True, cooldown=IMAGE_REQUEST_COOLDOWN, error=":cold_sweat: Please don't break me!")
         @wraps(command_func)
         async def wrapped_command(ctx, *args, **kwargs):
-            await util.get_client(ctx).send_typing(ctx.channel)
+            #await ctx.channel.send(ctx.channel) #util.get_client(ctx).channel.send_typing()
             await asyncio.ensure_future(command_func(ctx, *args, **kwargs))
 
         return wrapped_command
@@ -198,9 +198,9 @@ def parse(command_message):
     that can guess where quotes should be most times.
     """
 
-    key = dueserverconfig.server_cmd_key(command_message.server)
+    key = dueserverconfig.server_cmd_key(command_message.guild)
     command_string = command_message.content.replace(key, '', 1)
-    user_mentions = command_message.raw_mentions
+    user_mentions = [str(mention) for mention in command_message.raw_mentions] 
     escaped = False
     is_string = False
     args = []

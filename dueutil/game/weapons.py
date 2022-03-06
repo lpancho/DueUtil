@@ -154,6 +154,10 @@ def does_weapon_exist(server_id: str, weapon_name: str) -> bool:
 
 
 def get_weapon_for_server(server_id: str, weapon_name: str) -> Weapon:
+
+    if isinstance(server_id, int):
+        server_id = str(server_id)
+
     if weapon_name.lower() in stock_weapons:
         return weapons["STOCK/" + weapon_name.lower()]
     weapon_id = server_id + "/" + weapon_name.lower()
@@ -168,7 +172,7 @@ def get_weapon_summary_from_id(weapon_id: str) -> Summary:
                    accy=float(summary[2]))
 
 
-def remove_weapon_from_shop(server: discord.Server, weapon_name: str) -> bool:
+def remove_weapon_from_shop(server: discord.Guild, weapon_name: str) -> bool:
     weapon = get_weapon_for_server(server.id, weapon_name)
     if weapon is not None:
         del weapons[weapon.id]
@@ -177,11 +181,11 @@ def remove_weapon_from_shop(server: discord.Server, weapon_name: str) -> bool:
     return False
 
 
-def get_weapons_for_server(server: discord.Server) -> Dict[str, Weapon]:
+def get_weapons_for_server(server: discord.Guild) -> Dict[str, Weapon]:
     return dict(weapons[server], **weapons["STOCK"])
 
 
-def find_weapon(server: discord.Server, weapon_name_or_id: str) -> Union[Weapon, None]:
+def find_weapon(server: discord.Guild, weapon_name_or_id: str) -> Union[Weapon, None]:
     weapon = get_weapon_for_server(server.id, weapon_name_or_id)
     if weapon is None:
         weapon_id = weapon_name_or_id.lower()

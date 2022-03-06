@@ -175,15 +175,15 @@ class Banner(Customization):
         self.description = banner_data["description"]
         super().__init__(id, **banner_data)
 
-    def banner_restricted(self, player):
-        member = discord.Member(user={"id": player.id})
-        return ((not self.admin_only or self.admin_only
-                 and permissions.has_permission(member, Permission.DUEUTIL_ADMIN))
-                and (not self.mod_only or self.mod_only
-                     and permissions.has_permission(member, Permission.DUEUTIL_MOD)))
+    # def banner_restricted(self, player):
+    #     member = discord.Member(user={"id": player.id})
+    #     return ((not self.admin_only or self.admin_only
+    #              and permissions.has_permission(member, Permission.DUEUTIL_ADMIN))
+    #             and (not self.mod_only or self.mod_only
+    #                  and permissions.has_permission(member, Permission.DUEUTIL_MOD)))
 
     def can_use_banner(self, player):
-        return (not self.donor or self.donor and player.donor) and self.banner_restricted(player)
+        return (not self.donor or self.donor and player.donor) #and self.banner_restricted(player)
 
 
 class _Banners(dict):

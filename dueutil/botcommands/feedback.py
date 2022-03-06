@@ -24,7 +24,7 @@ class FeedbackHandler:
         report = discord.Embed(color=gconf.DUE_COLOUR)
         report.set_author(name=author_name, icon_url=author_icon_url)
         report.add_field(name=self.type.title(), value="%s" % (message), inline=False)
-        report.add_field(name=ctx.server.name, value=ctx.server.id)
+        report.add_field(name=ctx.guild.name, value=ctx.guild.id)
         report.add_field(name=ctx.channel.name, value=ctx.channel.id)
         report.set_footer(text="Sent at " + util.pretty_time())
         await util.say(self.channel, embed=report)

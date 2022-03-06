@@ -6,6 +6,7 @@ import time
 from itertools import chain
 
 import aiohttp
+import async_timeout
 import discord
 import emoji  # The emoji list in this is outdated/not complete.
 from raven import Client
@@ -97,7 +98,7 @@ class SlotPickleMixin:
 
 
 async def download_file(url):
-    with aiohttp.Timeout(10):
+    with async_timeout.timeout(10):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 file_data = io.BytesIO()
@@ -115,18 +116,18 @@ async def say(channel, *args, **kwargs):
     if type(channel) is str:
         # Server/Channel id
         server_id, channel_id = channel.split("/")
-        channel = get_server(server_id).get_channel(channel_id)
+        channel = get_guild(int(server_id)).get_channel(int(channel_id))
     if "client" in kwargs:
         client = kwargs["client"]
         del kwargs["client"]
     else:
-        client = get_client(channel.server.id)
+        client = get_client(channel.guild.id)
     if asyncio.get_event_loop() != client.loop:
         # Allows it to speak across shards
         client.run_task(say, *((channel,) + args), **kwargs)
     else:
         try:
-            await client.send_message(channel, *args, **kwargs)
+            await channel.send(*args, **kwargs)
         except discord.Forbidden as send_error:
             raise SendMessagePermMissing(send_error)
 
@@ -143,35 +144,39 @@ def load_and_update(reference, bot_object):
 
 
 def get_shard_index(server_id):
-    return (int(server_id) >> 22) % len(shard_clients)
+    return (server_id >> 22) % len(shard_clients)
 
 
 def pretty_time():
     return time.strftime('%I:%M%p %Z on %b %d, %Y')
 
 
-def get_server_count():
+def get_guild_count():
     return sum(len(client.servers) for client in shard_clients)
 
 
-def get_server_id(source):
-    if isinstance(source, str):
+def get_guild_id(source):
+    if isinstance(source, int):
         return source
-    elif hasattr(source, 'server'):
-        return source.server.id
-    elif isinstance(source, discord.Server):
+    elif hasattr(source, 'guild'):
+        return source.guild.id
+    elif isinstance(source, discord.Guild):
         return source.id
+    elif isinstance(source, str):
+        return int(source)
 
 
 def get_client(source):
     try:
-        return shard_clients[get_shard_index(get_server_id(source))]
+        client = shard_clients[get_shard_index(get_guild_id(source))]
+        return client
     except IndexError:
         return None
 
 
-def get_server(server_id):
-    return get_client(server_id).get_server(server_id)
+def get_guild(server_id):
+    client = get_client(server_id)
+    return client.get_guild(server_id)
 
 
 def ultra_escape_string(string):
@@ -252,7 +257,7 @@ def is_discord_emoji(server, possible_emoji):
     return char_is_emoji(possible_emoji) or is_server_emoji(server, possible_emoji)
 
 
-def get_server_name(server, user_id):
+def get_guild_name(server, user_id):
     try:
         return server.get_member(user_id).name
     except AttributeError:

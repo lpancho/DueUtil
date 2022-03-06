@@ -16,14 +16,14 @@ def update_server_config(server, **update):
 
 
 def mute_level(channel):
-    key = channel.server.id + '/' + channel.id
+    key = str(channel.guild.id) + '/' + str(channel.id)
     if key in muted_channels:
         return muted_channels[key]
     return -1
 
 
 def whitelisted_commands(channel):
-    key = channel.server.id + '/' + channel.id
+    key = str(channel.guild.id) + '/' + str(channel.id)
     if key in command_whitelist:
         return command_whitelist[key]
 
@@ -31,30 +31,30 @@ def whitelisted_commands(channel):
 def set_command_whitelist(channel, command_list):
     # Todo fix blacklist
     global command_whitelist
-    key = channel.server.id + '/' + channel.id
+    key = str(channel.guild.id) + '/' + str(channel.id)
     if len(command_list) != 0:
         command_whitelist[key] = command_list
     elif key in command_whitelist:
         del command_whitelist[key]
-    update_server_config(channel.server, **{"command_whitelist": command_whitelist[channel.server]})
+    update_server_config(channel.guild, **{"command_whitelist": command_whitelist[channel.guild]})
 
 
 def mute_channel(channel, **options):
-    key = channel.server.id + '/' + channel.id
+    key = str(channel.guild.id) + '/' + str(channel.id)
     prior_mute_level = mute_level(channel)
     new_level = options.get('mute_all', False)
     if prior_mute_level != new_level:
         muted_channels[key] = new_level
-        update_server_config(channel.server, **{"muted_channels": muted_channels[channel.server]})
+        update_server_config(channel.guild, **{"muted_channels": muted_channels[channel.guild]})
         return True
     return False
 
 
 def unmute_channel(channel):
-    key = channel.server.id + '/' + channel.id
+    key = str(channel.guild.id) + '/' + str(channel.id)
     if key in muted_channels:
         del muted_channels[key]
-        update_server_config(channel.server, **{"muted_channels": muted_channels[channel.server]})
+        update_server_config(channel.guild, **{"muted_channels": muted_channels[channel.guild]})
         return True
     return False
 

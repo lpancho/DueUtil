@@ -31,7 +31,7 @@ async def permissions(ctx, **_):
     permissions_report = ""
     for permission in dueutil.permissions.permissions:
         permissions_report += ("``" + permission.value[1] + "`` → "
-                               + (":white_check_mark:" if dueutil.permissions.has_permission(ctx.channel.server.me,
+                               + (":white_check_mark:" if dueutil.permissions.has_permission(ctx.author,
                                                                                              permission)
                                   else ":no_entry:") + "\n")
     await util.say(ctx.channel, permissions_report)
@@ -98,7 +98,7 @@ async def uploadbg(ctx, icon, name, description, url, price, submitter=None, **d
     
     """
 
-    if not (util.char_is_emoji(icon) or util.is_server_emoji(ctx.server, icon)):
+    if not (util.char_is_emoji(icon) or util.is_server_emoji(ctx.guild, icon)):
         raise util.DueUtilException(ctx.channel, "Icon must be emoji available on this server!")
 
     if name != util.filter_string(name):
@@ -237,11 +237,11 @@ async def sudo(ctx, victim, command, **_):
     """
 
     try:
-        ctx.author = ctx.server.get_member(victim.id)
+        ctx.author = ctx.guild.get_member(victim.id)
         if ctx.author is None:
             # This may not fix all places where author is used.
             ctx.author = victim.to_member()
-            ctx.author.server = ctx.server  # Lie about what server they're on.
+            ctx.author.server = ctx.guild  # Lie about what server they're on.
         ctx.content = command
         await util.say(ctx.channel, ":smiling_imp: Sudoing **" + victim.name_clean + "**!")
         await events.command_event(ctx)

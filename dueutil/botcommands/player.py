@@ -106,46 +106,46 @@ async def myinfo(ctx, **details):
     await imagehelper.stats_screen(ctx.channel, details["author"])
 
 
-def player_profile_url(player_id):
-    private_record = dbconn.conn()["public_profiles"].find_one({"_id": player_id})
+# def player_profile_url(player_id):
+#     private_record = dbconn.conn()["public_profiles"].find_one({"_id": player_id})
 
-    if private_record is None or private_record["private"]:
-        return None
-    return "https://dueutil.tech/player/id/%s" % player_id
-
-
-@commands.command(args_pattern=None)
-async def myprofile(ctx, **details):
-    """
-    [CMD_KEY]myprofile
-
-    Gives the link to your dueutil.tech profile
-    """
-
-    profile_url = player_profile_url(details["author"].id)
-
-    if profile_url is None:
-        await util.say(ctx.channel, (":lock: Your profile is currently set to private!\n"
-                                     + "If you want a public profile login to <https://dueutil.tech/>"
-                                     + " and make your profile public in the settings."))
-    else:
-        await util.say(ctx.channel, "Your profile is at %s" % profile_url)
+#     if private_record is None or private_record["private"]:
+#         return None
+#     return "https://dueutil.tech/player/id/%s" % player_id
 
 
-@commands.command(args_pattern='P')
-async def profile(ctx, player, **_):
-    """
-    [CMD_KEY]profile @player
+# @commands.command(args_pattern=None)
+# async def myprofile(ctx, **details):
+#     """
+#     [CMD_KEY]myprofile
 
-    Gives a link to a player's profile!
-    """
+#     Gives the link to your dueutil.tech profile
+#     """
 
-    profile_url = player_profile_url(player.id)
+#     profile_url = player_profile_url(details["author"].id)
 
-    if profile_url is None:
-        await util.say(ctx.channel, ":lock: **%s** profile is private!" % player.get_name_possession_clean())
-    else:
-        await util.say(ctx.channel, "**%s** profile is at %s" % (player.get_name_possession_clean(), profile_url))
+#     if profile_url is None:
+#         await util.say(ctx.channel, (":lock: Your profile is currently set to private!\n"
+#                                      + "If you want a public profile login to <https://dueutil.tech/>"
+#                                      + " and make your profile public in the settings."))
+#     else:
+#         await util.say(ctx.channel, "Your profile is at %s" % profile_url)
+
+
+# @commands.command(args_pattern='P')
+# async def profile(ctx, player, **_):
+#     """
+#     [CMD_KEY]profile @player
+
+#     Gives a link to a player's profile!
+#     """
+
+#     profile_url = player_profile_url(player.id)
+
+#     if profile_url is None:
+#         await util.say(ctx.channel, ":lock: **%s** profile is private!" % player.get_name_possession_clean())
+#     else:
+#         await util.say(ctx.channel, "**%s** profile is at %s" % (player.get_name_possession_clean(), profile_url))
 
 
 @commands.command(args_pattern='P', aliases=["in"])
@@ -284,7 +284,7 @@ async def benfont(ctx, **details):
     player.benfont = not player.benfont
     player.save()
     if player.benfont:
-        await util.get_client(ctx.server.id).send_file(ctx.channel, 'assets/images/nod.gif')
+        await util.get_client(ctx.guild.id).send_file(ctx.channel, 'assets/images/nod.gif')
         await game_awards.give_award(ctx.channel, player, "BenFont", "ONE TRUE *type* FONT")
 
 

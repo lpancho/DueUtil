@@ -1,5 +1,6 @@
 import math
 import random
+import string
 import time
 from collections import defaultdict
 from copy import copy
@@ -93,8 +94,15 @@ class Player(DueUtilObject, SlotPickleMixin):
     DEFAULT_FACTORIES = {"equipped": lambda: "default", "inventory": lambda: ["default"]}
 
     def __init__(self, *args, **kwargs):
-        if len(args) > 0 and isinstance(args[0], discord.User):
-            super().__init__(args[0].id, args[0].name, **kwargs)
+        if len(args) > 0 and isinstance(args[0], discord.Member):
+            
+            # Breaking changes from 0.16.12 to 1.7.2
+            # Need to handle all incoming int id to string
+            id = args[0].id
+            if isinstance(id, int):
+                id = str(id)
+
+            super().__init__(id, args[0].name, **kwargs)
             players[self.id] = self
         else:
             super().__init__("NO_ID", "DueUtil Player", **kwargs)
@@ -230,15 +238,21 @@ class Player(DueUtilObject, SlotPickleMixin):
     def weapon_hit(self):
         return random.random() < self.weapon_accy
 
-    def get_avatar_url(self, server=None, **extras):
-        if server is None:
+    def get_avatar_url(self, guild=None, **extras):
+        if guild is None:
             member = extras.get("member")
-        elif server is not None:
-            member = server.get_member(self.id)
+        elif guild is not None:
+
+            # TODO: Move this somewhere where we can call this conversion for all
+            id = self.id
+            if isinstance(self.id, str):
+                id = int(self.id)
+
+            member = guild.get_member(id)
         else:
             raise ValueError("Invalid arguments")
         if member.avatar_url != "":
-            return member.avatar_url
+            return member.avatar_url.BASE + member.avatar_url._url
         return member.default_avatar_url
 
     def get_avg_stat(self):
@@ -248,21 +262,27 @@ class Player(DueUtilObject, SlotPickleMixin):
         return "TopDog" in self.awards
 
     def is_playing(self, server=None, **extras):
+
+        # Since this will be use only for one server
+        # It is right to say that the one who is using the command is playing
+        # We will not going to use DUE_OPT related commands and roles
+        return True
+
         # Having the perm DISCORD_USER specially set to override PLAYER
         # means you have opted out.
-        if self.is_top_dog():
-            return True  # Topdog is ALWAYS playing.
-        if server is not None:
-            member = server.get_member(self.id)
-            if member is None:
-                # Member not on server.
-                member = self.to_member()
-        else:
-            # Server not passed.
-            member = self.to_member()
-        if not extras.get("local", False):
-            return permissions.has_permission(member, Permission.PLAYER)
-        return not util.has_role_name(member, gconf.DUE_OPTOUT_ROLE)
+        # if self.is_top_dog():
+        #     return True  # Topdog is ALWAYS playing.
+        # if server is not None:
+        #     member = server.get_member(self.id)
+        #     if member is None:
+        #         # Member not on server.
+        #         member = self.to_member()
+        # else:
+        #     # Server not passed.
+        #     member = self.to_member()
+        # if not extras.get("local", False):
+        #     return permissions.has_permission(member, Permission.PLAYER)
+        # return not util.has_role_name(member, gconf.DUE_OPTOUT_ROLE)
 
     @property
     def item_value_limit(self):
@@ -350,15 +370,15 @@ class Player(DueUtilObject, SlotPickleMixin):
         self.equipped["banner"] = theme["banner"]
         self.equipped["background"] = theme["background"]
 
-    def to_member(self):
-        """
-        Returns a fake discord member.
-        This is to cheat the perms system.
-        Will not work with perms that check for roles.
-        """
-        return discord.Member(user={'id': self.id,
-                                    'username': self.name,
-                                    'discriminator': 0000})
+    # def to_member(self, guild):
+    #     """
+    #     Returns a fake discord member.
+    #     This is to cheat the perms system.
+    #     Will not work with perms that check for roles.
+    #     """
+    #     return discord.Member(data={'id': self.id,
+    #                                 'username': self.name,
+    #                                 'discriminator': 0000}, guild=guild, state=self.__getstate__())
 
     def _setter(self, thing, value):
         if isinstance(value, DueUtilObject):
@@ -397,6 +417,10 @@ class Player(DueUtilObject, SlotPickleMixin):
 
 
 def find_player(user_id: str) -> Player:
+
+    if isinstance(user_id, int):
+        user_id = str(user_id)
+
     if user_id in players:
         return players[user_id]
     elif load_player(user_id):

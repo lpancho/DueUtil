@@ -21,7 +21,7 @@ quest_map = DueMap()
 
 MIN_QUEST_IV = 0
 QUEST_DAY = 86400
-QUEST_COOLDOWN = 360
+QUEST_COOLDOWN = 0
 MAX_DAILY_QUESTS = 50
 MAX_ACTIVE_QUESTS = 10
 
@@ -81,7 +81,7 @@ class Quest(DueUtilObject, SlotPickleMixin):
         self.save()
 
     def _quest_id(self):
-        return self.server_id + '/' + self.name.lower()
+        return str(self.server_id) + '/' + str(self.name.lower())
 
     def _add(self):
         global quest_map
@@ -244,15 +244,15 @@ class ActiveQuest(Player, util.SlotPickleMixin):
         return object_state
 
 
-def get_server_quest_list(server: discord.Server) -> Dict[str, Quest]:
+def get_server_quest_list(server: discord.Guild) -> Dict[str, Quest]:
     return quest_map[server]
 
 
-def get_quest_on_server(server: discord.Server, quest_name: str) -> Quest:
+def get_quest_on_server(server: discord.Guild, quest_name: str) -> Quest:
     return quest_map[server.id + "/" + quest_name.lower()]
 
 
-def remove_quest_from_server(server: discord.Server, quest_name: str):
+def remove_quest_from_server(server: discord.Guild, quest_name: str):
     quest_id = server.id + "/" + quest_name.lower()
     del quest_map[quest_id]
     dbconn.get_collection_for_object(Quest).remove({'_id': quest_id})
@@ -262,12 +262,15 @@ def get_quest_from_id(quest_id: str) -> Quest:
     return quest_map[quest_id]
 
 
-def get_channel_quests(channel: discord.Channel) -> List[Quest]:
-    return [quest for quest in quest_map[channel.server].values() if quest.channel in ("ALL", channel.id)]
+def get_channel_quests(channel: discord.TextChannel) -> List[Quest]:
+    guild_id = str(channel.guild.id)
+    quests = quest_map[guild_id].values()
+    return [quest for quest in quests if quest.channel in ("ALL", str(channel.id))]
 
 
 def get_random_quest_in_channel(channel):
-    if channel.server in quest_map:
+    guild_id = str(channel.guild.id)
+    if guild_id in quest_map:
         return random.choice(get_channel_quests(channel))
 
 
@@ -282,7 +285,7 @@ def add_default_quest_to_server(server):
           weapon_id=default.w_id,
           image_url=default.image_url,
           spawn_chance=default.spawn_chance * 100,
-          server_id=server.id,
+          server_id=str(server.id),
           no_save=True)
 
 
@@ -295,10 +298,11 @@ def remove_all_quests(server):
 
 
 def has_quests(place):
-    if isinstance(place, discord.Server):
+    if isinstance(place, discord.Guild):
         return place in quest_map and len(quest_map[place]) > 0
-    elif isinstance(place, discord.Channel):
-        if place.server in quest_map:
+    elif isinstance(place, discord.TextChannel):
+        guild_id = str(place.guild.id)
+        if guild_id in quest_map:
             return len(get_channel_quests(place)) > 0
     return False
 

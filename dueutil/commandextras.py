@@ -29,7 +29,7 @@ def dict_command(**spec):
 
             if dict_args is False:
                 # Invalid
-                await util.get_client(ctx.server.id).add_reaction(ctx, emojis.QUESTION_REACT)
+                await util.get_client(ctx.guild.id).add_reaction(ctx, emojis.QUESTION_REACT)
             else:
                 # Run command.
                 kwargs = details

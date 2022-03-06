@@ -83,7 +83,7 @@ async def help(ctx, *args, **details):
                 help_embed.add_field(name='Server managers only', value=', '.join(server_op_commands), inline=False)
     else:
 
-        help_embed.set_thumbnail(url=util.get_client(ctx.server.id).user.avatar_url)
+        help_embed.set_thumbnail(url=util.get_client(ctx.guild.id).user.avatar_url)
 
         help_embed.description = 'Welcome to the help!\n Simply do ' + server_key + 'help (category) or (command name).'
         help_embed.add_field(name=':file_folder: Command categories', value=', '.join(categories))
@@ -130,7 +130,7 @@ async def prefix(ctx, **details):
     Tells you what the prefix is on a server.
     """
 
-    server_prefix = dueserverconfig.server_cmd_key(ctx.server)
+    server_prefix = dueserverconfig.server_cmd_key(ctx.guild)
     await util.say(ctx.channel, "The prefix on **%s** is ``%s``" % (details.get("server_name_clean"), server_prefix))
 
 
@@ -171,7 +171,7 @@ async def dustats(ctx, **_):
                           inline=False)
     # Sharding
     shards = util.shard_clients
-    current_shard = util.get_client(ctx.server.id)
+    current_shard = util.get_client(ctx.guild.id)
     stats_embed.add_field(name="Shards",
                           value=("You're connected to shard **%d/%d** (that is named %s).\n"
                                  % (current_shard.shard_id + 1, len(shards), current_shard.name)
@@ -182,18 +182,18 @@ async def dustats(ctx, **_):
     await util.say(ctx.channel, embed=stats_embed)
 
 
-@commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
-async def duservers(ctx, **_):
-    """
-    [CMD_KEY]duservers
+# @commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
+# async def duservers(ctx, **_):
+#     """
+#     [CMD_KEY]duservers
     
-    Shows the number of servers DueUtil is chillin on.
+#     Shows the number of servers DueUtil is chillin on.
     
-    """
+#     """
 
-    server_count = util.get_server_count()
-    await util.say(ctx.channel, "DueUtil is active on **" + str(server_count) + " server"
-                   + ("s" if server_count != 1 else "") + "**")
+#     server_count = util.get_server_count()
+#     await util.say(ctx.channel, "DueUtil is active on **" + str(server_count) + " server"
+#                    + ("s" if server_count != 1 else "") + "**")
 
 
 @commands.command(permission=Permission.SERVER_ADMIN, args_pattern="S", aliases=("setprefix",))
@@ -206,7 +206,7 @@ async def setcmdkey(ctx, new_key, **details):
     """
 
     if len(new_key) in (1, 2):
-        dueserverconfig.server_cmd_key(ctx.server, new_key)
+        dueserverconfig.server_cmd_key(ctx.guild, new_key)
         await util.say(ctx.channel,
                        "Command prefix on **" + details["server_name_clean"] + "** set to ``" + new_key + "``!")
     else:
@@ -270,7 +270,7 @@ async def leave(ctx, **_):
     bye_embed.set_image(url="http://i.imgur.com/N65P9gL.gif")
     await util.say(ctx.channel, embed=bye_embed)
     try:
-        await util.get_client(ctx.server.id).leave_server(ctx.server)
+        await util.get_client(ctx.guild.id).leave_server(ctx.guild)
     except:
         raise util.DueUtilException(ctx.channel, "Could not leave server!")
 
@@ -361,26 +361,27 @@ async def blacklist(ctx, *args, **_):
         dueserverconfig.set_command_whitelist(ctx.channel, [])
         await util.say(ctx.channel, ":pencil: Command blacklist removed.")
 
-
-@commands.command(permission=Permission.REAL_SERVER_ADMIN, args_pattern=None)
-async def setuproles(ctx, **_):
-    """
-    [CMD_KEY]setuproles
+# NOTE: Create_role method does not exists in the current repository
+#       We can create the roles manually for the moment.
+# @commands.command(permission=Permission.REAL_SERVER_ADMIN, args_pattern=None)
+# async def setuproles(ctx, **_):
+#     """
+#     [CMD_KEY]setuproles
     
-    Creates any discord roles DueUtil needs. These will have been made when
-    DueUtil joined your server but if you deleted any & need them you'll 
-    want to run this command.
+#     Creates any discord roles DueUtil needs. These will have been made when
+#     DueUtil joined your server but if you deleted any & need them you'll 
+#     want to run this command.
     
-    """
-    roles_made = await util.set_up_roles(ctx.server)
-    roles_count = len(roles_made)
-    if roles_count > 0:
-        result = ":white_check_mark: Created **%d %s**!\n" % (roles_count, util.s_suffix("role", roles_count))
-        for role in roles_made:
-            result += "→ ``%s``\n" % role["name"]
-        await util.say(ctx.channel, result)
-    else:
-        await util.say(ctx.channel, "No roles need to be created!")
+#     """
+#     roles_made = await util.set_up_roles(ctx.guild)
+#     roles_count = len(roles_made)
+#     if roles_count > 0:
+#         result = ":white_check_mark: Created **%d %s**!\n" % (roles_count, util.s_suffix("role", roles_count))
+#         for role in roles_made:
+#             result += "→ ``%s``\n" % role["name"]
+#         await util.say(ctx.channel, result)
+#     else:
+#         await util.say(ctx.channel, "No roles need to be created!")
 
 
 async def optout_is_topdog_check(channel, player):
@@ -391,118 +392,118 @@ async def optout_is_topdog_check(channel, player):
     return topdog
 
 
-@commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
-async def optout(ctx, **details):
-    """
-    [CMD_KEY]optout
+# @commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
+# async def optout(ctx, **details):
+#     """
+#     [CMD_KEY]optout
 
-    Optout of DueUtil.
+#     Optout of DueUtil.
 
-    When you opt out:
-        You don't get quests or exp.
-        Other players can't use you in commands.
-        You lose access to all "game" commands.
+#     When you opt out:
+#         You don't get quests or exp.
+#         Other players can't use you in commands.
+#         You lose access to all "game" commands.
 
-    Server admins (that opt out) still have access to admin commands.
+#     Server admins (that opt out) still have access to admin commands.
 
-    (This applies to all servers with DueUtil)
-    """
+#     (This applies to all servers with DueUtil)
+#     """
 
-    player = details["author"]
-    if player.is_playing():
-        current_permission = permissions.get_special_permission(ctx.author)
-        if await optout_is_topdog_check(ctx.channel, player):
-            return
-        if current_permission >= Permission.DUEUTIL_MOD:
-            raise util.DueUtilException(ctx.channel, "You cannot optout everywhere and stay a dueutil mod or admin!")
-        permissions.give_permission(ctx.author, Permission.DISCORD_USER)
-        await util.say(ctx.channel, (":ok_hand: You've opted out of DueUtil everywhere.\n"
-                                     + "You won't get exp, quests, and other players can't use you in commands."))
-    else:
-        await util.say(ctx.channel, ("You've already opted out everywhere!\n"
-                                     + "You can join the fun again with ``%soptin``." % details["cmd_key"]))
-
-
-@commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
-async def optin(ctx, **details):
-    """
-    [CMD_KEY]optin
-
-    Optin to DueUtil.
-
-    (This applies to all servers with DueUtil)
-    """
-
-    player = details["author"]
-    local_optout = not player.is_playing(ctx.server, local=True)
-    # Already playing
-    if player.is_playing():
-        if not local_optout:
-            await util.say(ctx.channel, "You've already opted in everywhere!")
-        else:
-            await util.say(ctx.channel, ("You've only opted out on this server!\n"
-                                         + "To optin here do ``%soptinhere``" % details["cmd_key"]))
-    else:
-        permissions.give_permission(ctx.author, Permission.PLAYER)
-        await util.say(ctx.channel, ("You've opted in everywhere"
-                                     + (" (does not override your server level optout)" * local_optout) + "!\n"
-                                     + "Glad to have you back."))
+#     player = details["author"]
+#     if player.is_playing():
+#         current_permission = permissions.get_special_permission(ctx.author)
+#         if await optout_is_topdog_check(ctx.channel, player):
+#             return
+#         if current_permission >= Permission.DUEUTIL_MOD:
+#             raise util.DueUtilException(ctx.channel, "You cannot optout everywhere and stay a dueutil mod or admin!")
+#         permissions.give_permission(ctx.author, Permission.DISCORD_USER)
+#         await util.say(ctx.channel, (":ok_hand: You've opted out of DueUtil everywhere.\n"
+#                                      + "You won't get exp, quests, and other players can't use you in commands."))
+#     else:
+#         await util.say(ctx.channel, ("You've already opted out everywhere!\n"
+#                                      + "You can join the fun again with ``%soptin``." % details["cmd_key"]))
 
 
-@commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
-async def optouthere(ctx, **details):
-    """
-    [CMD_KEY]optouthere
+# @commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
+# async def optin(ctx, **details):
+#     """
+#     [CMD_KEY]optin
 
-    Optout of DueUtil on the server you run the command.
-    This has the same effect as [CMD_KEY]optout but is local.
-    """
+#     Optin to DueUtil.
 
-    player = details["author"]
+#     (This applies to all servers with DueUtil)
+#     """
 
-    if not player.is_playing():
-        await util.say(ctx.channel, "You've already opted out everywhere!")
-        return
-
-    if player.is_playing(ctx.server, local=True):
-        optout_role = util.get_role_by_name(ctx.server, gconf.DUE_OPTOUT_ROLE)
-        if optout_role is None:
-            await util.say(ctx.channel, ("There is no optout role on this server!\n"
-                                         + "Ask an admin to run ``%ssetuproles``" % details["cmd_key"]))
-        else:
-            if await optout_is_topdog_check(ctx.channel, player):
-                return
-            client = util.get_client(ctx.server.id)
-            await client.add_roles(ctx.author, optout_role)
-            await util.say(ctx.channel, (":ok_hand: You've opted out of DueUtil on this server!\n"
-                                         + "You won't exp, quests, or be usable in commands here."))
-    else:
-        await util.say(ctx.channel, ("You've already opted out on this sever!\n"
-                                     + "Join the fun over here do ``%soptinhere``" % details["cmd_key"]))
+#     player = details["author"]
+#     local_optout = not player.is_playing(ctx.server, local=True)
+#     # Already playing
+#     if player.is_playing():
+#         if not local_optout:
+#             await util.say(ctx.channel, "You've already opted in everywhere!")
+#         else:
+#             await util.say(ctx.channel, ("You've only opted out on this server!\n"
+#                                          + "To optin here do ``%soptinhere``" % details["cmd_key"]))
+#     else:
+#         permissions.give_permission(ctx.author, Permission.PLAYER)
+#         await util.say(ctx.channel, ("You've opted in everywhere"
+#                                      + (" (does not override your server level optout)" * local_optout) + "!\n"
+#                                      + "Glad to have you back."))
 
 
-@commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
-async def optinhere(ctx, **details):
-    """
-    [CMD_KEY]optinhere
+# @commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
+# async def optouthere(ctx, **details):
+#     """
+#     [CMD_KEY]optouthere
 
-    Optin to DueUtil on a server.
-    """
+#     Optout of DueUtil on the server you run the command.
+#     This has the same effect as [CMD_KEY]optout but is local.
+#     """
 
-    player = details["author"]
-    globally_opted_out = not player.is_playing()
+#     player = details["author"]
 
-    optout_role = util.get_role_by_name(ctx.server, gconf.DUE_OPTOUT_ROLE)
-    if optout_role is not None and not player.is_playing(ctx.server, local=True):
-        client = util.get_client(ctx.server.id)
-        await client.remove_roles(ctx.author, optout_role)
-        await util.say(ctx.channel, ("You've opted in on this server!\n"
-                                     + ("However this is overridden by your global optout.\n"
-                                        + "To optin everywhere to ``%soptin``" % details["cmd_key"])
-                                     * globally_opted_out))
-    else:
-        if globally_opted_out:
-            await util.say(ctx.channel, ("You've opted out of DueUtil everywhere!\n"
-                                         + "To use DueUtil do ``%soptin``" % details["cmd_key"]))
-        else:
-            await util.say(ctx.channel, "You've not opted out on this server.")
+#     if not player.is_playing():
+#         await util.say(ctx.channel, "You've already opted out everywhere!")
+#         return
+
+#     if player.is_playing(ctx.server, local=True):
+#         optout_role = util.get_role_by_name(ctx.server, gconf.DUE_OPTOUT_ROLE)
+#         if optout_role is None:
+#             await util.say(ctx.channel, ("There is no optout role on this server!\n"
+#                                          + "Ask an admin to run ``%ssetuproles``" % details["cmd_key"]))
+#         else:
+#             if await optout_is_topdog_check(ctx.channel, player):
+#                 return
+#             client = util.get_client(ctx.server.id)
+#             await client.add_roles(ctx.author, optout_role)
+#             await util.say(ctx.channel, (":ok_hand: You've opted out of DueUtil on this server!\n"
+#                                          + "You won't exp, quests, or be usable in commands here."))
+#     else:
+#         await util.say(ctx.channel, ("You've already opted out on this sever!\n"
+#                                      + "Join the fun over here do ``%soptinhere``" % details["cmd_key"]))
+
+
+# @commands.command(permission=Permission.DISCORD_USER, args_pattern=None)
+# async def optinhere(ctx, **details):
+#     """
+#     [CMD_KEY]optinhere
+
+#     Optin to DueUtil on a server.
+#     """
+
+#     player = details["author"]
+#     globally_opted_out = not player.is_playing()
+
+#     optout_role = util.get_role_by_name(ctx.server, gconf.DUE_OPTOUT_ROLE)
+#     if optout_role is not None and not player.is_playing(ctx.server, local=True):
+#         client = util.get_client(ctx.server.id)
+#         await client.remove_roles(ctx.author, optout_role)
+#         await util.say(ctx.channel, ("You've opted in on this server!\n"
+#                                      + ("However this is overridden by your global optout.\n"
+#                                         + "To optin everywhere to ``%soptin``" % details["cmd_key"])
+#                                      * globally_opted_out))
+#     else:
+#         if globally_opted_out:
+#             await util.say(ctx.channel, ("You've opted out of DueUtil everywhere!\n"
+#                                          + "To use DueUtil do ``%soptin``" % details["cmd_key"]))
+#         else:
+#             await util.say(ctx.channel, "You've not opted out on this server.")

@@ -14,9 +14,7 @@ from ..game import emojis
 async def glitter_text(channel, text):
     try:
         gif_text = await misc.get_glitter_text(text)
-        await util.get_client(channel).send_file(channel, fp=gif_text,
-                                                 filename="glittertext.gif",
-                                                 content=":sparkles: Your glitter text!")
+        await channel.send(file=discord.File(fp=gif_text, filename="glittertext.gif"))
     except (ValueError, asyncio.TimeoutError):
         await util.say(channel, ":cry: Could not fetch glitter text!")
 
@@ -109,7 +107,7 @@ async def leaderboard(ctx, mixed=1, page_alt=1, **details):
     if local:
         title = "DueUtil Leaderboard on %s" % details["server_name_clean"]
         # Cached.
-        local_leaderboard = leaderboards.get_local_leaderboard(ctx.server, "levels")
+        local_leaderboard = leaderboards.get_local_leaderboard(ctx.guild, "levels")
         leaderboard_data = local_leaderboard.data
         last_updated = local_leaderboard.updated
     else:
@@ -142,7 +140,7 @@ async def leaderboard(ctx, mixed=1, page_alt=1, **details):
         elif index == 2:
             bonus = "     :third_place:"
         player = players.find_player(leaderboard_data[index])
-        user_info = ctx.server.get_member(player.id)
+        user_info = ctx.guild.get_member(player.id)
         if user_info is None:
             user_info = player.id
         leaderboard_embed \
@@ -166,7 +164,7 @@ async def rank_command(ctx, player, ranks="", **details):
     local = ranks != "global"
 
     if local:
-        position = leaderboards.get_rank(player, "levels", ctx.server)
+        position = leaderboards.get_rank(player, "levels", ctx.guild)
         ranks = padding = ""
     else:
         position = leaderboards.get_rank(player, "levels")
@@ -230,7 +228,7 @@ async def globalrank(ctx, player=None, **details):
 
 
 async def give_emoji(channel, sender, receiver, emoji):
-    if not util.char_is_emoji(emoji) and not util.is_server_emoji(channel.server, emoji):
+    if not util.char_is_emoji(emoji) and not util.is_server_emoji(channel.guild, emoji):
         raise util.DueUtilException(channel, "You can only send emoji!")
     if sender == receiver:
         raise util.DueUtilException(channel, "You can't send a " + emoji + " to yourself!")
@@ -283,62 +281,62 @@ async def givepotato(ctx, receiver, **details):
         await awards.give_award(ctx.channel, sender, "KingTat", ":crown: :potato: **Potato King!** :potato: :crown:")
 
 
-@commands.command(args_pattern=None)
-async def topdog(ctx, **_):
-    """
-    [CMD_KEY]topdog
+# @commands.command(args_pattern=None)
+# async def topdog(ctx, **_):
+#     """
+#     [CMD_KEY]topdog
 
-    View the "top dog"
-    """
-    top_dog_stats = awards.get_award_stat("TopDog")
-    if top_dog_stats is not None and "top_dog" in top_dog_stats:
-        top_dog = players.find_player(top_dog_stats["top_dog"])
-        await util.say(ctx.channel, (":dog: The current top dog is **%s** (%s)!\n"
-                                     + "They are the **%s** to earn the rank of top dog!")
-                       % (top_dog, top_dog.id, util.int_to_ordinal(top_dog_stats["times_given"])))
-    else:
-        await util.say(ctx.channel, "There is not a top dog yet!")
+#     View the "top dog"
+#     """
+#     top_dog_stats = awards.get_award_stat("TopDog")
+#     if top_dog_stats is not None and "top_dog" in top_dog_stats:
+#         top_dog = players.find_player(top_dog_stats["top_dog"])
+#         await util.say(ctx.channel, (":dog: The current top dog is **%s** (%s)!\n"
+#                                      + "They are the **%s** to earn the rank of top dog!")
+#                        % (top_dog, top_dog.id, util.int_to_ordinal(top_dog_stats["times_given"])))
+#     else:
+#         await util.say(ctx.channel, "There is not a top dog yet!")
 
 
-@commands.command(args_pattern=None)
-async def pandemic(ctx, **_):
-    """
-    [CMD_KEY]pandemic
+# @commands.command(args_pattern=None)
+# async def pandemic(ctx, **_):
+#     """
+#     [CMD_KEY]pandemic
 
-    Tracked the passed DueUtil pandemic.
-    """
-    virus_stats = awards.get_award_stat("Duerus")
+#     Tracked the passed DueUtil pandemic.
+#     """
+#     virus_stats = awards.get_award_stat("Duerus")
 
-    if virus_stats is None or virus_stats["times_given"] == 0:
-        await util.say(ctx.channel, "All looks good now though a pandemic could break out any day.")
-        return
+#     if virus_stats is None or virus_stats["times_given"] == 0:
+#         await util.say(ctx.channel, "All looks good now though a pandemic could break out any day.")
+#         return
 
-    warning_symbols = {0: ":heart: - Healthy", 1: ":yellow_heart: - Worrisome", 2: ":black_heart: - Doomed"}
-    thumbnails = {0: "http://i.imgur.com/NENJMOP.jpg",
-                  1: "http://i.imgur.com/we6XgpG.gif",
-                  2: "http://i.imgur.com/EJVYJ9C.gif"}
+#     warning_symbols = {0: ":heart: - Healthy", 1: ":yellow_heart: - Worrisome", 2: ":black_heart: - Doomed"}
+#     thumbnails = {0: "http://i.imgur.com/NENJMOP.jpg",
+#                   1: "http://i.imgur.com/we6XgpG.gif",
+#                   2: "http://i.imgur.com/EJVYJ9C.gif"}
 
-    total_players = dbconn.get_collection_for_object(players.Player).count()
-    total_infected = virus_stats["times_given"]
-    total_uninfected = total_players - total_infected
-    percent_infected = (total_infected / total_players) * 100
-    pandemic_level = percent_infected // 33
-    pandemic_embed = discord.Embed(title=":biohazard: DueUtil Pandemic :biohazard:", type="rich",
-                                   color=gconf.DUE_COLOUR)
-    pandemic_embed.description = ("The pandemic has now ended!\n"
-                                  + "This was the final result.")
-    pandemic_embed.set_thumbnail(url=thumbnails.get(pandemic_level, thumbnails[2]))
-    # pandemic_embed.description = "Monitoring the spread of the __loser__ pandemic."
-    pandemic_embed.add_field(name="Pandemic stats", value=("Out of a total of **%s** players:\n"
-                                                           + ":biohazard: **%s** "
-                                                           + ("is" if total_infected == 1 else "are") + " infected.\n"
-                                                           + ":pill: **%s** "
-                                                           + ("is" if total_uninfected == 1 else "are")
-                                                           + " uninfected.\n\n"
-                                                           + "This means **%.2g**%% of all players are infected!")
-                                                          % (total_players, total_infected,
-                                                             total_uninfected, percent_infected))
-    pandemic_embed.add_field(name="Health level",
-                             value=warning_symbols.get(pandemic_level, warning_symbols[2]))
+#     total_players = dbconn.get_collection_for_object(players.Player).count()
+#     total_infected = virus_stats["times_given"]
+#     total_uninfected = total_players - total_infected
+#     percent_infected = (total_infected / total_players) * 100
+#     pandemic_level = percent_infected // 33
+#     pandemic_embed = discord.Embed(title=":biohazard: DueUtil Pandemic :biohazard:", type="rich",
+#                                    color=gconf.DUE_COLOUR)
+#     pandemic_embed.description = ("The pandemic has now ended!\n"
+#                                   + "This was the final result.")
+#     pandemic_embed.set_thumbnail(url=thumbnails.get(pandemic_level, thumbnails[2]))
+#     # pandemic_embed.description = "Monitoring the spread of the __loser__ pandemic."
+#     pandemic_embed.add_field(name="Pandemic stats", value=("Out of a total of **%s** players:\n"
+#                                                            + ":biohazard: **%s** "
+#                                                            + ("is" if total_infected == 1 else "are") + " infected.\n"
+#                                                            + ":pill: **%s** "
+#                                                            + ("is" if total_uninfected == 1 else "are")
+#                                                            + " uninfected.\n\n"
+#                                                            + "This means **%.2g**%% of all players are infected!")
+#                                                           % (total_players, total_infected,
+#                                                              total_uninfected, percent_infected))
+#     pandemic_embed.add_field(name="Health level",
+#                              value=warning_symbols.get(pandemic_level, warning_symbols[2]))
 
-    await util.say(ctx.channel, embed=pandemic_embed)
+#     await util.say(ctx.channel, embed=pandemic_embed)

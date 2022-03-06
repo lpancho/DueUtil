@@ -148,7 +148,7 @@ async def money_leaderboard(ctx, page=0, **details):
         elif index == 2:
             bonus = "     :third_place:"
         player = leaderboard_data[index]
-        user_info = ctx.server.get_member(player.id)
+        user_info = ctx.guild.get_member(player.id)
         if user_info is None:
             user_info = player.id
         leaderboard_embed \

@@ -5,9 +5,11 @@ import re
 from io import BytesIO
 from urllib.parse import urlparse
 from PIL import Image, ImageDraw, ImageFont
+import async_timeout
 from colour import Color
 import aiohttp
 import asyncio
+import discord
 
 from dueutil import util
 from .. import awards, gamerules, stats, weapons, customizations
@@ -104,7 +106,7 @@ def paste_alpha(background, image, position):
 async def url_image(url):
     # Checks headers only
     try:
-        with aiohttp.Timeout(3):
+        with async_timeout.timeout(3):
             async with aiohttp.ClientSession() as session:
                 async with session.head(url=url, allow_redirects=True) as response:
                     return "Content-Type" in response.headers and \
@@ -127,6 +129,7 @@ async def warn_on_invalid_image(channel, url):
 async def load_image_url(url, **kwargs):
     if url is None:
         return None
+
     parsed_url = urlparse(url)
     do_not_compress = kwargs.get("raw", False)
     if (parsed_url.hostname is not None
@@ -149,8 +152,8 @@ def resize(image, width, height):
     return image.resize((width, height), Image.ANTIALIAS)
 
 
-async def resize_avatar(player, server, width, height):
-    return await resize_image_url(player.get_avatar_url(server), width, height)
+async def resize_avatar(player, guild, width, height):
+    return await resize_image_url(player.get_avatar_url(guild), width, height)
 
 
 async def resize_image_url(url, width, height):
@@ -175,7 +178,12 @@ async def send_image(channel, image, **kwargs):
     output = BytesIO()
     image.save(output, format="PNG")
     output.seek(0)
-    await util.get_client(channel.server.id).send_file(channel, fp=output, **kwargs)
+
+    content = None
+    if "content" in kwargs:
+        content = kwargs["content"]
+
+    await channel.send(content=content, file=discord.File(fp=output, filename=kwargs["filename"]))
     output.close()
 
 
@@ -183,7 +191,7 @@ async def level_up_screen(channel, player, cash):
     image = level_up_template.copy()
     level = math.trunc(player.level)
     try:
-        avatar = await resize_avatar(player, channel.server, 54, 54)
+        avatar = await resize_avatar(player, channel.guild, 54, 54)
         image.paste(avatar, (10, 10))
     except:
         pass
@@ -197,7 +205,7 @@ async def level_up_screen(channel, player, cash):
 async def new_quest_screen(channel, quest, player):
     image = new_quest_template.copy()
     try:
-        avatar = await resize_avatar(quest, channel.server, 54, 54)
+        avatar = await resize_avatar(quest, channel.guild, 54, 54)
         image.paste(avatar, (10, 10))
     except:
         pass
@@ -243,7 +251,7 @@ async def awards_screen(channel, player, page, **kwargs):
                 if not for_player:
                     command = "awards @User"
                 msg = ("+ " + str(len(player.awards) - (5 * (page + 1))) + " More. Do "
-                       + dueserverconfig.server_cmd_key(channel.server) + command
+                       + dueserverconfig.server_cmd_key(channel.guild) + command
                        + " " + str(page + 2) + " for the next page.")
             break
     if player_award == 0:
@@ -306,7 +314,7 @@ async def quests_screen(channel, player, page):
         if count == 5:
             if quest_index != 0:
                 msg = ("+ " + str(len(player.quests) - (5 * (page + 1))) + " More. Do "
-                       + dueserverconfig.server_cmd_key(channel.server)
+                       + dueserverconfig.server_cmd_key(channel.guild)
                        + "myquests " + str(page + 2) + " for the next page.")
             break
     if quest_index == 0:
@@ -352,7 +360,7 @@ async def stats_screen(channel, player):
     paste_alpha(image, avatar_border, (3, 6))
 
     try:
-        image.paste(await resize_avatar(player, channel.server, 80, 80), (9, 12))
+        image.paste(await resize_avatar(player, channel.guild, 80, 80), (9, 12))
     except:
         pass
 
@@ -486,12 +494,12 @@ async def battle_screen(channel, player_one, player_two):
     width, height = image.size
 
     try:
-        image.paste(await resize_avatar(player_one, channel.server, 54, 54), (9, 9))
+        image.paste(await resize_avatar(player_one, channel.guild, 54, 54), (9, 9))
     except:
         pass
 
     try:
-        image.paste(await resize_avatar(player_two, channel.server, 54, 54), (width - 9 - 55, 9))
+        image.paste(await resize_avatar(player_two, channel.guild, 54, 54), (width - 9 - 55, 9))
     except:
         pass
 

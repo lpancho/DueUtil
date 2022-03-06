@@ -81,7 +81,7 @@ class DueUtilClient(discord.Client):
 
     @asyncio.coroutine
     def on_server_join(self, server):
-        server_count = util.get_server_count()
+        server_count = 1 #util.get_server_count()
         if server_count % 1000 == 0:
             # Announce every 100 servers (for now)
             yield from util.say(gconf.announcement_channel,
@@ -129,9 +129,9 @@ class DueUtilClient(discord.Client):
         elif isinstance(error, util.DueUtilException):
             # A normal dueutil user error
             if error.channel is not None:
-                yield from self.send_message(error.channel, error.get_message())
+                yield from error.channel.send(error.get_message())
             else:
-                yield from self.send_message(ctx.channel, error.get_message())
+                yield from error.channel.send(error.get_message())
             return
         elif isinstance(error, util.DueReloadException):
             loader.reload_modules()
@@ -152,7 +152,7 @@ class DueUtilClient(discord.Client):
                 return
         elif isinstance(error, discord.HTTPException):
             util.logger.error("Discord HTTP error: %s", error)
-        elif isinstance(error, aiohttp.errors.ClientResponseError):
+        elif isinstance(error, aiohttp.ClientResponseError):
             if ctx_is_message:
                 util.logger.error("%s: ctx from %s: %s", error, ctx.author.id, ctx.content)
             else:
@@ -161,7 +161,7 @@ class DueUtilClient(discord.Client):
             util.logger.critical("Something went very wrong and the error of death came for us: %s", error)
             os._exit(1)
         elif ctx_is_message:
-            yield from self.send_message(ctx.channel, (":bangbang: **Something went wrong...**"))
+            yield from ctx.channel.send(":bangbang: **Something went wrong...**")
             trigger_message = discord.Embed(title="Trigger", type="rich", color=gconf.DUE_COLOUR)
             trigger_message.add_field(name="Message", value=ctx.author.mention + ":\n" + ctx.content)
             yield from util.duelogger.error(("**Message/command triggred error!**\n"
@@ -174,11 +174,10 @@ class DueUtilClient(discord.Client):
     @asyncio.coroutine
     def on_message(self, message):
         if (message.author == self.user
-            or message.channel.is_private
             or message.author.bot
                 or not loaded()):
             return
-        mentions_self_regex = "<@.?"+self.user.id+">"
+        mentions_self_regex = "<@.?"+str(self.user.id)+">"
         if re.match("^"+mentions_self_regex, message.content):
             message.content = re.sub(mentions_self_regex + "\s*",
                                      dueserverconfig.server_cmd_key(message.server),
@@ -224,7 +223,7 @@ class DueUtilClient(discord.Client):
     def on_ready(self):
         shard_number = shard_clients.index(self) + 1
         help_status = discord.Game(name="dueutil.tech | shard %d/%d" % (shard_number, shard_count))
-        yield from self.change_presence(game=help_status, afk=False)
+        yield from self.change_presence(activity=discord.Game(name=help_status), afk=False)
         util.logger.info("\nLogged in shard %d as\n%s\nWith account @%s ID:%s \n-------",
                          shard_number, self.name, self.user.name, self.user.id)
         self.loaded = True
@@ -245,7 +244,9 @@ class ShardThread(Thread):
 
     def run(self, level=1):
         asyncio.set_event_loop(self.event_loop)
-        client = DueUtilClient(shard_id=self.shard_number, shard_count=shard_count)
+        intents = discord.Intents.default()
+        intents.members = True
+        client = DueUtilClient(shard_id=self.shard_number, shard_count=shard_count, intents=intents)
         shard_clients.append(client)
         try:
             asyncio.run_coroutine_threadsafe(client.run(bot_key), client.loop)
@@ -298,8 +299,9 @@ if __name__ == "__main__":
     bot_key = config["botToken"]
     shard_count = config["shardCount"]
     shard_names = config["shardNames"]
-    owner = discord.Member(user={"id": config["owner"]})
-    if not permissions.has_permission(owner, Permission.DUEUTIL_ADMIN):
-        permissions.give_permission(owner, Permission.DUEUTIL_ADMIN)
+    # owner = discord.Guild.fetch_member(self, member_id=config["owner"])
+    # # owner = discord.Member(user={"id": config["owner"]})
+    # if not permissions.has_permission(owner, Permission.DUEUTIL_ADMIN):
+    #     permissions.give_permission(owner, Permission.DUEUTIL_ADMIN)
     util.load(shard_clients)
     run_due()

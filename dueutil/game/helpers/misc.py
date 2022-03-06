@@ -2,6 +2,7 @@ import collections
 import urllib
 from abc import ABC
 import threading
+import async_timeout
 
 import validators
 import aiohttp
@@ -143,6 +144,10 @@ class DueMap(collections.MutableMapping):
             return None
         if key in self.collection:
             return self.collection[key]
+        # TODO: Need to find out where the collection being populated by string ids
+        # TODO: String ids must be changed to int ids
+        if str(key) in self.collection:
+            return self.collection[str(key)]
         return {}
 
     def __contains__(self, key):
@@ -181,7 +186,10 @@ class DueMap(collections.MutableMapping):
 
     @staticmethod
     def _parse_key(key, value=None):
-        if isinstance(key, discord.Server):
+        if isinstance(key, int):
+            key = str(key)
+
+        if isinstance(key, discord.Guild):
             if value is not None:
                 return [key.id, value.name]
             return key.id
@@ -292,7 +300,7 @@ async def get_glitter_text(gif_text):
     Screen scrape glitter text
     """
 
-    with aiohttp.Timeout(10):
+    with async_timeout.timeout(10):
         async with aiohttp.ClientSession() as session:
             async with session.get(GLITTER_TEXT_URL % urllib.parse.quote(gif_text.replace("'", ""))) as page_response:
                 html = await page_response.text()
