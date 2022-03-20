@@ -311,7 +311,7 @@ async def editquest(ctx, quest_name, updates, **_):
                 updates[quest_property] = value.title()
             else:
                 channel_id = value.replace("<#", "").replace(">", "")
-                channel = util.get_client(ctx.guild.id).get_channel(channel_id)
+                channel = util.get_client(ctx.guild.id).get_channel(int(channel_id))
                 if channel is not None:
                     quest.channel = channel.id
                 else:

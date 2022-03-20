@@ -43,8 +43,8 @@ class Quest(DueUtilObject, SlotPickleMixin):
         given_spawn_chance = extras.get('spawn_chance', 4)
 
         if message is not None:
-            if message.server in quest_map:
-                if name.lower() in quest_map[message.server]:
+            if message.guild in quest_map:
+                if name.lower() in quest_map[message.guild]:
                     raise util.DueUtilException(message.channel, "A foe with that name already exists on this server!")
 
             if base_accy < 1 or base_attack < 1 or base_strg < 1:
@@ -59,7 +59,7 @@ class Quest(DueUtilObject, SlotPickleMixin):
             if given_spawn_chance < 1 or given_spawn_chance > 25:
                 raise util.DueUtilException(message.channel, "Spawn chance must be between 1 and 25%!")
 
-            self.server_id = message.server.id
+            self.server_id = message.guild.id
             self.created_by = message.author.id
         else:
             self.server_id = extras.get('server_id', "DEFAULT")
@@ -249,11 +249,11 @@ def get_server_quest_list(server: discord.Guild) -> Dict[str, Quest]:
 
 
 def get_quest_on_server(server: discord.Guild, quest_name: str) -> Quest:
-    return quest_map[server.id + "/" + quest_name.lower()]
+    return quest_map[str(server.id) + "/" + quest_name.lower()]
 
 
 def remove_quest_from_server(server: discord.Guild, quest_name: str):
-    quest_id = server.id + "/" + quest_name.lower()
+    quest_id = str(server.id) + "/" + quest_name.lower()
     del quest_map[quest_id]
     dbconn.get_collection_for_object(Quest).remove({'_id': quest_id})
 
@@ -290,9 +290,10 @@ def add_default_quest_to_server(server):
 
 
 def remove_all_quests(server):
-    if server in quest_map:
-        result = dbconn.delete_objects(Quest, '%s/.*' % server.id)
-        del quest_map[server]
+    server_id = str(server.id)
+    if server_id in quest_map:
+        result = dbconn.delete_objects(Quest, '%s/.*' % server_id)
+        del quest_map[server_id]
         return result.deleted_count
     return 0
 
