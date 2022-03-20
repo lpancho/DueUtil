@@ -36,7 +36,7 @@ class Weapon(DueUtilObject, SlotPickleMixin):
         message = extras.get('ctx', None)
 
         if message is not None:
-            if does_weapon_exist(message.server.id, name):
+            if does_weapon_exist(message.guild.id, name):
                 raise util.DueUtilException(message.channel, "A weapon with that name already exists on this server!")
 
             if not Weapon.acceptable_string(name, 30):
@@ -52,11 +52,11 @@ class Weapon(DueUtilObject, SlotPickleMixin):
                 raise util.DueUtilException(message.channel, "Accuracy must be between 1% and 86%!")
 
             icon = extras.get('icon', emojis.DAGGER)
-            if not (util.char_is_emoji(icon) or util.is_server_emoji(message.server, icon)):
+            if not (util.char_is_emoji(icon) or util.is_server_emoji(message.guild, icon)):
                 raise util.DueUtilException(message.channel, (":eyes: Weapon icons must be emojis! :ok_hand:**"
                                                               + "(custom emojis must be on this server)**​"))
 
-            self.server_id = message.server.id
+            self.server_id = message.guild.id
 
         else:
             self.server_id = "STOCK"
@@ -181,8 +181,14 @@ def remove_weapon_from_shop(server: discord.Guild, weapon_name: str) -> bool:
     return False
 
 
-def get_weapons_for_server(server: discord.Guild) -> Dict[str, Weapon]:
-    return dict(weapons[server], **weapons["STOCK"])
+def get_weapons_for_server(server) -> Dict[str, Weapon]:
+    server_id = server
+    if isinstance(server, discord.Guild):
+        server_id = str(server.id)
+    elif isinstance(server, int):
+        server_id = str(server)
+        
+    return dict(weapons[server_id], **weapons["STOCK"])
 
 
 def find_weapon(server: discord.Guild, weapon_name_or_id: str) -> Union[Weapon, None]:
@@ -202,9 +208,10 @@ def stock_weapon(weapon_name: str) -> str:
 
 
 def remove_all_weapons(server):
-    if server in weapons:
-        result = dbconn.delete_objects(Weapon, '%s\+.*' % server.id)
-        del weapons[server]
+    server_id = str(server.id)
+    if server_id in weapons:
+        result = dbconn.delete_objects(Weapon, '%s\+.*' % server_id)
+        del weapons[server_id]
         return result.deleted_count
     return 0
 
